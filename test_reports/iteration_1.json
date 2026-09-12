@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend-only E2E testing of OLI Customer User Panel demo completed. Executed 28+ scenarios covering login (email+OTP and OLI ID paths), Welcome Back popup, dashboard live services, chatbot (dashboard-only, greeting, chip navigation, status query), service detail with data isolation between OLI IDs, invoices (25 rows), receipts (5 rows), callback flow with revision dedupe, complaint (sad icon + 5-digit ticket), suggestion, feedback, profile save with confirm+OTP+persistence, ExploreServices Apply&Pay checkout with new OLI creation, How to Use tour (Start Tour -> tooltip -> Skip), Live toggle (start/stop reflected on dashboard), Mark Work Done (banner + certificate + feedback modal), real file upload via filechooser with confirm dialog and refresh persistence, mobile viewport with hamburger drawer and no horizontal overflow. All critical scenarios pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Non-blocking: React DOM hydration warning in console - '<span> cannot be a child of <option>'. Caused by dynamic-source instrumentation wrapping option text in a <span>. Consider ensuring <option> children are plain strings only in Complaint/Feedback service-select rendering (modals.jsx around L211) to silence the warning."
+  ],
+  "critical_code_review_comments": [
+    "Complaint/Feedback/Callback service <select> options render dynamic text that gets wrapped in a <span> by the build's source instrumentation, producing a React hydration warning. Functionally works but should be cleaned by rendering the option label as a direct string.",
+    "Native file picker (document.createElement('input')) works but bypasses React state; acceptable for demo. data-testid coverage is excellent across pages, modals and rows."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only demo)", "frontend": "100% (all tested scenarios pass)"},
+  "test_credentials": "demo@email.com / Demo123@ / OTP 123456; OLI IDs: OLI12345678914797 (GST), OLI12345678914785 (TM), OLI12345698714785 (ISO)",
+  "seed_data_creation": "None created; localStorage state persists demo data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Pure frontend localStorage demo (key oli_panel_state_v1). Welcome Back popup shows once per session (sessionStorage oli_wb_shown). Invoice/receipt buttons are per-row: data-testid='invoice-view-{no}' & 'invoice-download-{no}'. Callback options: data-testid='callback-option-{oliId}'. Confirm modals use 'confirm-ok-btn'. Upload uses document.createElement('input') so must be handled via page.expect_file_chooser(). Chatbot chips: data-testid='chatbot-chip-{slug}'. To retrigger Welcome Back, logout & login again. Reset Demo Data available on Profile page.",
+  "rca of the issue": "No blocking issues found. Minor React hydration warning in console originates from the emergent editor's source-instrumentation wrapping dynamic <option> text in a <span> — this is a runtime warning, not a functional bug."
+}
