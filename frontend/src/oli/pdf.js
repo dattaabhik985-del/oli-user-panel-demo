@@ -4,26 +4,46 @@ const ORANGE = [234, 109, 39];
 
 export function invoiceDoc(inv) {
   const d = new jsPDF();
-  d.setFillColor(...ORANGE); d.rect(0, 0, 210, 26, 'F');
-  d.setTextColor(255, 255, 255); d.setFontSize(15); d.setFont(undefined, 'bold');
-  d.text('Online Legal India', 14, 12);
-  d.setFontSize(9); d.setFont(undefined, 'normal'); d.text('Tax Invoice', 14, 20);
-  d.setTextColor(30, 30, 30); d.setFontSize(10);
-  d.setFont(undefined, 'bold'); d.text(`Invoice No: ${inv.no}`, 14, 40);
-  d.setFont(undefined, 'normal'); d.text(`Invoice Date: ${inv.date}`, 140, 40);
-  d.text('Bill To:', 14, 52);
-  d.setFont(undefined, 'bold'); d.text('Vamsee Krishna', 14, 58);
-  d.setFont(undefined, 'normal');
-  d.text('ABC Foods Private Limited', 14, 64); d.text('demo@email.com', 14, 70);
-  d.text(`Service: ${inv.service}`, 14, 84); d.text(`OLI ID: ${inv.oliId}`, 14, 90);
-  d.setDrawColor(220, 220, 220); d.line(14, 98, 196, 98);
-  d.setFont(undefined, 'bold'); d.text('Description', 14, 106); d.text('Amount', 170, 106);
-  d.setFont(undefined, 'normal'); d.text(inv.service, 14, 114); d.text(`Rs. ${inv.amount}`, 170, 114);
-  d.line(14, 122, 196, 122);
-  d.setFont(undefined, 'bold'); d.text('Total Payable', 120, 130); d.text(`Rs. ${inv.amount}`, 170, 130);
-  d.setTextColor(22, 163, 74); d.text('Status: PAID', 14, 130);
-  d.setTextColor(130, 130, 130); d.setFontSize(8); d.setFont(undefined, 'normal');
-  d.text('This is a system-generated demo invoice issued by Online Legal India.', 14, 282);
+  d.setTextColor(...ORANGE); d.setFontSize(18); d.setFont(undefined, 'bold');
+  d.text('Online Legal India', 14, 18);
+  d.setTextColor(120, 120, 120); d.setFontSize(8); d.setFont(undefined, 'normal');
+  d.text('A unit of Rapid Innovation Pvt. Ltd. | support@onlinelegalindia.com | www.onlinelegalindia.com', 14, 24);
+  d.setTextColor(47, 52, 110); d.setFontSize(15); d.setFont(undefined, 'bold');
+  d.text('TAX INVOICE', 196, 18, { align: 'right' });
+  d.setFont(undefined, 'normal'); d.setFontSize(9); d.setTextColor(70, 70, 70);
+  d.text(`Invoice No: ${inv.no}`, 196, 25, { align: 'right' });
+  d.text(`Invoice Date: ${inv.date}`, 196, 30, { align: 'right' });
+  d.setDrawColor(...ORANGE); d.setLineWidth(0.8); d.line(14, 34, 196, 34);
+
+  d.setFontSize(8); d.setTextColor(140, 140, 140); d.setFont(undefined, 'bold');
+  d.text('BILL TO', 14, 42);
+  d.setFont(undefined, 'normal'); d.setFontSize(10); d.setTextColor(30, 30, 30);
+  d.text('Vamsee Krishna', 14, 48);
+  d.setFontSize(9); d.setTextColor(100, 100, 100);
+  d.text('ABC Foods Private Limited', 14, 53);
+  d.text('demo@email.com  |  +91 98765 43210', 14, 58);
+  d.text('Delhi, India', 14, 63);
+
+  const top = 74;
+  d.setFillColor(47, 52, 110); d.rect(14, top, 182, 8, 'F');
+  d.setTextColor(255, 255, 255); d.setFontSize(8); d.setFont(undefined, 'bold');
+  d.text('S.No', 17, top + 5.5); d.text('SERVICE DESCRIPTION', 32, top + 5.5);
+  d.text('OLI ID', 118, top + 5.5); d.text('AMOUNT', 190, top + 5.5, { align: 'right' });
+  d.setTextColor(40, 40, 40); d.setFont(undefined, 'normal'); d.setFontSize(9);
+  d.text('1', 17, top + 14); d.text(inv.service, 32, top + 14);
+  d.text(inv.oliId, 118, top + 14); d.text(`Rs. ${inv.amount}`, 190, top + 14, { align: 'right' });
+  d.setDrawColor(230, 230, 230); d.setLineWidth(0.3); d.line(14, top + 18, 196, top + 18);
+
+  d.setTextColor(22, 163, 74); d.setFont(undefined, 'bold'); d.setFontSize(11);
+  d.text('PAID', 14, top + 28);
+  d.setTextColor(40, 40, 40); d.setFontSize(9);
+  d.text('Total Payable', 140, top + 26); d.text(`Rs. ${inv.amount}`, 190, top + 26, { align: 'right' });
+  d.setFont(undefined, 'normal'); d.setTextColor(120, 120, 120); d.setFontSize(8);
+  d.text('Taxes (GST): Included', 140, top + 32);
+
+  d.setTextColor(140, 140, 140); d.setFontSize(8);
+  d.text('Thank you for choosing Online Legal India.', 105, 270, { align: 'center' });
+  d.text('This is a computer-generated invoice and does not require a signature. Demo document.', 105, 275, { align: 'center' });
   return d;
 }
 

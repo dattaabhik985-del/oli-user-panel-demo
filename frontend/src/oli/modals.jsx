@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Star, PartyPopper, Frown } from 'lucide-react';
 import { Modal, ConfirmModal, Btn, Field, inputCls } from './ui';
 import { useStore, pickFile, fileToDataUrl, fmtNow, docTypeLabel, downloadDataUrl } from './store';
+import { EXPERTS } from './data';
 import { invoiceDoc, receiptDoc } from './pdf';
 
 export function commitUpload(set, oliId, file, dataUrl, reqDocName) {
@@ -32,7 +33,7 @@ export function useUploadFlow() {
   const requestUpload = async (oliId, reqDocName, accept) => {
     const f = await pickFile(accept);
     if (!f) return;
-    if (f.size > 2.5 * 1024 * 1024) { toast.error('File too large for browser demo storage (max 2.5 MB).'); return; }
+    if (f.size > 5 * 1024 * 1024) { toast.error('File exceeds the maximum size of 5 MB. Please select another file.'); return; }
     const dataUrl = await fileToDataUrl(f);
     setPending({ file: f, dataUrl, oliId, reqDoc: reqDocName });
   };
@@ -112,12 +113,11 @@ export function CallbackModal({ open, preselect, onClose }) {
 
   const svc = sel ? state.services.find(x => x.oliId === sel) : null;
   const existing = sel ? state.callbacks.find(c => c.oliId === sel && c.status === 'Pending') : null;
+  const selExpert = svc && svc.expert != null ? EXPERTS[svc.expert] : { name: 'To be assigned', did: '—' };
 
   const submit = () => {
     if (!svc) { toast.error('Please select a service / OLI ID.'); return; }
     if (!date || !time) { toast.error('Please pick a preferred date and time.'); return; }
-    const expertName = svc.expert != null ? ['Abhik Datta','Rahul Verma','Sneha Iyer','Arjun Mehta','Kavita Rao','Meera Nair','Priya Sharma','Vikram Singh'][svc.expert] : 'To be assigned';
-    const did = svc.expert != null ? ['8012345678','8012345679','8012345680','8012345681','8012345682','8012345683','8012345684','8012345664'][svc.expert] : '—';
     set(st => {
       const cur = st.callbacks.find(c => c.oliId === svc.oliId && c.status === 'Pending');
       if (cur) {
@@ -128,7 +128,7 @@ export function CallbackModal({ open, preselect, onClose }) {
       } else {
         st.callbacks.unshift({
           id: 'cb-' + Math.random().toString(36).slice(2, 8),
-          oliId: svc.oliId, service: svc.name, expert: expertName, did,
+          oliId: svc.oliId, service: svc.name, expert: selExpert.name, did: selExpert.did,
           requestedAt: fmtNow(), revisedAt: '—', preferred: `${date} ${time}`,
           status: 'Pending', remark: remark || '—',
           history: [{ at: fmtNow(), action: 'Requested', detail: `Preferred ${date} ${time}` }],
@@ -142,28 +142,46 @@ export function CallbackModal({ open, preselect, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Request a Callback" sub="Search by OLI ID, service name or assigned expert, then pick a convenient time." testid="callback-modal">
-      <input data-testid="callback-search-input" className={inputCls} placeholder="e.g. OLI12345678914785 or GST or Abhik" value={q} onChange={e => setQ(e.target.value)} />
-      <div className="mt-2 max-h-44 overflow-y-auto oli-scroll divide-y divide-gray-50 border border-gray-100 rounded-md">
-        {matches.map(m => {
-          const exp = m.expert != null ? ['Abhik Datta','Rahul Verma','Sneha Iyer','Arjun Mehta','Kavita Rao','Meera Nair','Priya Sharma','Vikram Singh'][m.expert] : 'To be assigned';
-          const did = m.expert != null ? ['8012345678','8012345679','8012345680','8012345681','8012345682','8012345683','8012345684','8012345664'][m.expert] : '';
-          const hasActive = state.callbacks.some(c => c.oliId === m.oliId && c.status === 'Pending');
-          return (
-            <button
-              key={m.oliId}
-              data-testid={`callback-option-${m.oliId}`}
-              onClick={() => setSel(m.oliId)}
-              className={`w-full text-left px-3 py-2 hover:bg-orange-50/60 ${sel === m.oliId ? 'bg-orange-50' : ''}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium text-gray-800">{m.name} · <span className="text-gray-400">{m.oliId}</span></span>
-                {hasActive && <span className="text-[9px] font-semibold text-orange-500 bg-orange-50 border border-orange-200 rounded-full px-2 py-0.5 whitespace-nowrap">Active request — will be revised</span>}
-              </div>
-              <p className="text-[10px] text-gray-400 mt-0.5">Expert: {exp}{did ? ` · DID: ${did}` : ''}</p>
-            </button>
-          );
-        })}
-      </div>
+      {!svc && (
+        <>
+          <input data-testid="callback-search-input" className={inputCls} placeholder="e.g. OLI12345678914785 or GST or Abhik" value={q} onChange={e => setQ(e.target.value)} />
+          <div className="mt-2 max-h-44 overflow-y-auto oli-scroll divide-y divide-gray-50 border border-gray-100 rounded-md">
+            {matches.map(m => {
+              const exp = m.expert != null ? EXPERTS[m.expert].name : 'To be assigned';
+              const did = m.expert != null ? EXPERTS[m.expert].did : '';
+              const hasActive = state.callbacks.some(c => c.oliId === m.oliId && c.status === 'Pending');
+              return (
+                <button
+                  key={m.oliId}
+                  data-testid={`callback-option-${m.oliId}`}
+                  onClick={() => setSel(m.oliId)}
+                  className="w-full text-left px-3 py-2 hover:bg-orange-50/60"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-gray-800">{m.name} · <span className="text-gray-400">{m.oliId}</span></span>
+                    {hasActive && <span className="text-[9px] font-semibold text-orange-500 bg-orange-50 border border-orange-200 rounded-full px-2 py-0.5 whitespace-nowrap">Active request — will be revised</span>}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Expert: {exp}{did ? ` · DID: ${did}` : ''}</p>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+      {svc && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50/60 p-3" data-testid="callback-selected-box">
+          <div className="flex items-start justify-between gap-2">
+            <div className="text-xs space-y-1">
+              <p className="text-gray-500">Selected Service: <b className="text-gray-800" data-testid="callback-selected-service">{svc.name}</b></p>
+              <p className="text-gray-500">Selected OLI ID: <b className="text-gray-800" data-testid="callback-selected-oliid">{svc.oliId}</b></p>
+              <p className="text-gray-500">Assigned Expert: <b className="text-gray-800" data-testid="callback-selected-expert">{selExpert.name}</b></p>
+              <p className="text-gray-500">DID: <b className="text-gray-800" data-testid="callback-selected-did">{selExpert.did}</b></p>
+            </div>
+            <button data-testid="callback-change-btn" className="text-[11px] text-[#2E6BEA] hover:underline shrink-0" onClick={() => setSel(null)}>Change</button>
+          </div>
+          {existing && <span className="inline-block mt-2 text-[9px] font-semibold text-orange-500 bg-orange-50 border border-orange-200 rounded-full px-2 py-0.5">Active request — will be revised</span>}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 mt-3">
         <Field label="Preferred Date"><input data-testid="callback-date-input" type="date" className={inputCls} value={date} onChange={e => setDate(e.target.value)} /></Field>
         <Field label="Preferred Time"><input data-testid="callback-time-input" type="time" className={inputCls} value={time} onChange={e => setTime(e.target.value)} /></Field>
@@ -183,6 +201,7 @@ export function CallbackModal({ open, preselect, onClose }) {
 
 export function ComplaintModal({ open, preselect, onClose }) {
   const { state, set } = useStore();
+  const navigate = useNavigate();
   const [step, setStep] = useState('form');
   const [svc, setSvc] = useState('General');
   const [subject, setSubject] = useState('');
@@ -197,7 +216,18 @@ export function ComplaintModal({ open, preselect, onClose }) {
 
   const doSubmit = () => {
     const t = String(Math.floor(10000 + Math.random() * 90000));
-    set(st => { st.complaints.unshift({ id: t, service: svc, subject, desc, at: fmtNow(), status: 'Escalated' }); return st; });
+    const now = fmtNow();
+    set(st => {
+      st.complaints.unshift({
+        id: t, service: svc, subject, desc, at: now,
+        status: 'Assigned to Escalation Department', statusIndex: 1,
+        workCompleted: ['Complaint registered by the customer', 'Ticket assigned to the Escalation Department'],
+        pendingWork: ['Detailed review of your complaint', 'Callback from the escalation team', 'Final resolution'],
+        latestUpdate: `${now} — Ticket assigned to the Escalation Department.`,
+        teamRemark: 'We have received your complaint. Our escalation team will reach out to you shortly.',
+      });
+      return st;
+    });
     setTicket(t);
     setStep('done');
   };
@@ -235,7 +265,10 @@ export function ComplaintModal({ open, preselect, onClose }) {
           <Frown size={44} className="text-amber-400" data-testid="complaint-sad-icon" />
           <p className="text-xs text-gray-500 mt-3 max-w-[240px]">Sorry for the inconvenience, we will reach out to you soon to make your service better.</p>
           <p data-testid="complaint-ticket-id" className="text-sm font-semibold text-gray-800 mt-3">Ticket ID: {ticket}</p>
-          <Btn color="blue" className="mt-4" onClick={onClose} data-testid="complaint-done-btn">Done</Btn>
+          <div className="flex gap-2 mt-4">
+            <Btn color="gray" onClick={onClose} data-testid="complaint-done-btn">Done</Btn>
+            <Btn color="blue" data-testid="track-ticket-btn" onClick={() => { onClose(); navigate(`/ticket/${ticket}`); }}>Track Ticket ID</Btn>
+          </div>
         </div>
       </Modal>
     </>
@@ -244,14 +277,18 @@ export function ComplaintModal({ open, preselect, onClose }) {
 
 export function FeedbackModal({ open, preselect, onClose }) {
   const { state, set } = useStore();
+  const navigate = useNavigate();
+  const [step, setStep] = useState('form');
   const [svc, setSvc] = useState('');
   const [stars, setStars] = useState(0);
   const [review, setReview] = useState('');
+  const [submitted, setSubmitted] = useState(null);
   useEffect(() => {
-    if (open) { setSvc(preselect || ''); setStars(0); setReview(''); }
+    if (open) { setStep('form'); setSvc(preselect || ''); setStars(0); setReview(''); setSubmitted(null); }
   }, [open, preselect]);
   const submit = () => {
     if (!stars) { toast.error('Please select a star rating.'); return; }
+    const target = svc ? state.services.find(x => x.oliId === svc) : null;
     set(st => {
       if (svc) {
         const s = st.services.find(x => x.oliId === svc);
@@ -260,30 +297,52 @@ export function FeedbackModal({ open, preselect, onClose }) {
       st.feedbackLog.unshift({ oliId: svc || null, stars, review, at: fmtNow() });
       return st;
     });
-    toast.success('Thank you for your feedback!');
-    onClose();
+    setSubmitted({ stars, forCompleted: !!(target && target.completed) });
+    setStep('response');
   };
+  const positive = submitted ? submitted.stars >= 4 : true;
   return (
-    <Modal open={open} onClose={onClose} title="Share Your Feedback" sub="Rate your experience with Online Legal India." testid="feedback-modal">
-      <Field label="Service (optional)">
-        <select data-testid="feedback-service-select" className={inputCls} value={svc} onChange={e => setSvc(e.target.value)}>
-          <option value="" label="General feedback" />
-          {state.services.map(s => <option key={s.oliId} value={s.oliId} label={`${s.name} · ${s.oliId}`} />)}
-        </select>
-      </Field>
-      <div className="flex gap-1 mt-3" data-testid="feedback-stars">
-        {[1, 2, 3, 4, 5].map(i => (
-          <button key={i} data-testid={`feedback-star-${i}`} onClick={() => setStars(i)}>
-            <Star size={24} className={i <= stars ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} />
-          </button>
-        ))}
-      </div>
-      <div className="mt-3"><Field label="Write a review"><textarea data-testid="feedback-review-input" rows={3} className={inputCls} placeholder="Please share your experience..." value={review} onChange={e => setReview(e.target.value)} /></Field></div>
-      <div className="flex justify-end gap-2 mt-5">
-        <Btn color="gray" onClick={onClose} data-testid="feedback-cancel-btn">Cancel</Btn>
-        <Btn color="green" onClick={submit} data-testid="feedback-submit-btn">Submit Review</Btn>
-      </div>
-    </Modal>
+    <>
+      <Modal open={open && step === 'form'} onClose={onClose} title="Share Your Feedback" sub="Rate your experience with Online Legal India." testid="feedback-modal">
+        <Field label="Service (optional)">
+          <select data-testid="feedback-service-select" className={inputCls} value={svc} onChange={e => setSvc(e.target.value)}>
+            <option value="" label="General feedback" />
+            {state.services.map(s => <option key={s.oliId} value={s.oliId} label={`${s.name} · ${s.oliId}`} />)}
+          </select>
+        </Field>
+        <div className="flex gap-1 mt-3" data-testid="feedback-stars">
+          {[1, 2, 3, 4, 5].map(i => (
+            <button key={i} data-testid={`feedback-star-${i}`} onClick={() => setStars(i)}>
+              <Star size={24} className={i <= stars ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} />
+            </button>
+          ))}
+        </div>
+        <div className="mt-3"><Field label="Write a review"><textarea data-testid="feedback-review-input" rows={3} className={inputCls} placeholder="Please share your experience..." value={review} onChange={e => setReview(e.target.value)} /></Field></div>
+        <div className="flex justify-end gap-2 mt-5">
+          <Btn color="gray" onClick={onClose} data-testid="feedback-cancel-btn">Cancel</Btn>
+          <Btn color="green" onClick={submit} data-testid="feedback-submit-btn">Submit Review</Btn>
+        </div>
+      </Modal>
+      <Modal open={open && step === 'response'} onClose={onClose} title="Feedback Submitted" testid="feedback-response-modal">
+        <div className="flex flex-col items-center text-center py-2">
+          {positive ? (
+            <p data-testid="feedback-response-positive" className="text-sm font-medium text-gray-800">Your feedback is valuable for us 🙏</p>
+          ) : (
+            <>
+              <Frown size={42} className="text-amber-400" data-testid="feedback-sad-icon" />
+              <p data-testid="feedback-response-negative" className="text-sm font-medium text-gray-800 mt-3 max-w-[260px]">Sorry for the inconvenience, we are committed to serve you better in future</p>
+            </>
+          )}
+          <div className="flex gap-2 mt-5">
+            {submitted && submitted.forCompleted ? (
+              <Btn color="orange" size="md" data-testid="feedback-view-reco-btn" onClick={() => { onClose(); navigate('/recommended'); }}>View Recommended Services</Btn>
+            ) : (
+              <Btn color="blue" size="md" data-testid="feedback-done-btn" onClick={onClose}>Done</Btn>
+            )}
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -376,20 +435,27 @@ export function WelcomeBackModal({ open, onClose }) {
   const pending = state.services.filter(s => s.requiredDocs.some(r => !r.uploaded));
   return (
     <Modal open={open} onClose={onClose} title="Welcome Back 👋" sub="Required Documents — please upload the following to keep your services moving." wide testid="welcome-back-modal">
-      <div className="space-y-4">
+      <p className="text-[10px] text-gray-400 mb-3" data-testid="welcome-max-size">Maximum file size: 5 MB per document.</p>
+      <div className="space-y-3">
         {pending.map(s => (
-          <div key={s.oliId} data-testid={`welcome-docs-${s.oliId}`}>
-            <p className="text-xs font-semibold text-gray-800">{s.name} <span className="font-normal text-gray-400 text-[10px]">{s.oliId}</span></p>
-            <div className="mt-1 space-y-1.5">
-              {s.requiredDocs.filter(r => !r.uploaded).map(r => (
-                <div key={r.name} className="flex items-center justify-between gap-2 py-1">
-                  <span className="text-xs text-gray-600">{r.name}</span>
-                  <span className="flex items-center gap-2">
-                    <span className="rounded-full bg-red-50 text-red-500 border border-red-100 px-2 py-0.5 text-[10px] font-medium">Required</span>
-                    <Btn color="blue" data-testid={`welcome-upload-${s.oliId}-${r.name}`} onClick={() => requestUpload(s.oliId, r.name, r.accepted)}>Upload</Btn>
-                  </span>
-                </div>
-              ))}
+          <div key={s.oliId} data-testid={`welcome-docs-${s.oliId}`} className="rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
+              <p className="text-xs font-semibold text-gray-800">{s.name}</p>
+              <p className="text-[10px] text-gray-400">{s.oliId}</p>
+            </div>
+            <div className="px-3 py-2.5">
+              <p className="text-[9px] font-semibold tracking-widest text-gray-400 mb-1.5">REQUIRED DOCUMENTS</p>
+              <div className="space-y-1.5">
+                {s.requiredDocs.filter(r => !r.uploaded).map(r => (
+                  <div key={r.name} className="flex items-center justify-between gap-2 py-1">
+                    <span className="text-xs text-gray-600">{r.name}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="rounded-full bg-red-50 text-red-500 border border-red-100 px-2 py-0.5 text-[10px] font-medium">Required</span>
+                      <Btn color="blue" data-testid={`welcome-upload-${s.oliId}-${r.name}`} onClick={() => requestUpload(s.oliId, r.name, r.accepted)}>Upload</Btn>
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -414,7 +480,7 @@ export function InstrModal({ open, doc, onClose }) {
           <ul className="list-disc pl-4 space-y-1 text-gray-500">
             <li>Make sure all four corners of the document are visible.</li>
             <li>The document should be valid and not expired.</li>
-            <li>Maximum file size for this demo is 2.5 MB.</li>
+            <li>Maximum file size: 5 MB.</li>
             <li>Your file is stored securely in your browser for this demo.</li>
           </ul>
         </div>
@@ -447,32 +513,65 @@ export function PreviewModal({ open, doc, onClose }) {
 export function InvoiceViewModal({ open, item, kind, onClose }) {
   if (!item) return null;
   const isInv = kind === 'invoice';
+  const amount = isInv ? item.amount : item.fee;
   const download = () => {
     const d = isInv ? invoiceDoc(item) : receiptDoc(item);
     d.save(`${(isInv ? item.no : item.ref).replaceAll('/', '-')}.pdf`);
   };
   return (
-    <Modal open={open} onClose={onClose} title={isInv ? 'Tax Invoice' : 'Government Fee Receipt'} sub="Online Legal India" testid="invoice-view-modal">
-      <div className="border border-gray-100 rounded-lg p-4 text-xs text-gray-600 space-y-1.5">
-        {isInv ? (
-          <>
-            <div className="flex justify-between"><span>Invoice No</span><b>{item.no}</b></div>
-            <div className="flex justify-between"><span>Invoice Date</span><b>{item.date}</b></div>
-            <div className="flex justify-between"><span>Service</span><b>{item.service}</b></div>
-            <div className="flex justify-between"><span>OLI ID</span><b>{item.oliId}</b></div>
-            <div className="flex justify-between"><span>Bill To</span><b>Vamsee Krishna · ABC Foods Private Limited</b></div>
-            <div className="flex justify-between border-t border-gray-100 pt-1.5"><span>Amount</span><b>₹{item.amount}</b></div>
-          </>
-        ) : (
-          <>
-            <div className="flex justify-between"><span>Receipt Ref</span><b>{item.ref}</b></div>
-            <div className="flex justify-between"><span>Date</span><b>{item.date}</b></div>
-            <div className="flex justify-between"><span>Service</span><b>{item.service}</b></div>
-            <div className="flex justify-between"><span>OLI ID</span><b>{item.oliId}</b></div>
-            <div className="flex justify-between border-t border-gray-100 pt-1.5"><span>Govt Fee</span><b>₹{item.fee}</b></div>
-          </>
-        )}
-        <div className="flex justify-between"><span>Status</span><span className="rounded-full bg-green-100 text-green-600 px-2 py-0.5 text-[10px] font-medium">Paid</span></div>
+    <Modal open={open} onClose={onClose} wide testid="invoice-view-modal">
+      <div className="border border-gray-200 rounded-lg overflow-hidden" data-testid="invoice-document">
+        <div className="flex items-start justify-between gap-3 p-4 border-b-2 border-[#EA6D27]">
+          <div>
+            <p className="text-sm font-bold text-[#EA6D27]">Online Legal India</p>
+            <p className="text-[9px] text-gray-400 mt-0.5">A unit of Rapid Innovation Pvt. Ltd. · support@onlinelegalindia.com · www.onlinelegalindia.com</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-sm font-bold text-[#2F346E]">{isInv ? 'TAX INVOICE' : 'GOVT FEE RECEIPT'}</p>
+            {isInv ? (
+              <>
+                <p className="text-[10px] text-gray-500 mt-0.5">Invoice No: <b>{item.no}</b></p>
+                <p className="text-[10px] text-gray-500">Invoice Date: <b>{item.date}</b></p>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] text-gray-500 mt-0.5">Receipt Ref: <b>{item.ref}</b></p>
+                <p className="text-[10px] text-gray-500">Date: <b>{item.date}</b></p>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="p-4">
+          <p className="text-[9px] font-semibold tracking-widest text-gray-400">BILL TO</p>
+          <p className="text-xs font-semibold text-gray-800 mt-0.5">Vamsee Krishna</p>
+          <p className="text-[10px] text-gray-400">ABC Foods Private Limited · demo@email.com · +91 98765 43210 · Delhi, India</p>
+          <table className="w-full mt-3">
+            <thead>
+              <tr className="bg-[#2F346E] text-white">
+                <th className="text-left px-2 py-1.5 text-[9px] font-medium rounded-l">S.No</th>
+                <th className="text-left px-2 py-1.5 text-[9px] font-medium">SERVICE DESCRIPTION</th>
+                <th className="text-left px-2 py-1.5 text-[9px] font-medium">OLI ID</th>
+                <th className="text-right px-2 py-1.5 text-[9px] font-medium rounded-r">AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-100 text-xs text-gray-600">
+                <td className="px-2 py-2">1</td>
+                <td className="px-2 py-2">{item.service}</td>
+                <td className="px-2 py-2">{item.oliId}</td>
+                <td className="px-2 py-2 text-right font-medium">₹{amount}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className="flex justify-between items-start mt-3">
+            <span className="rounded bg-green-100 text-green-600 px-2 py-0.5 text-[10px] font-bold" data-testid="invoice-paid-badge">PAID</span>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-400">Taxes (GST): Included</p>
+              <p className="text-xs font-bold text-gray-800 mt-0.5">Total Payable: ₹{amount}</p>
+            </div>
+          </div>
+          <p className="text-[9px] text-gray-300 text-center mt-4">Thank you for choosing Online Legal India. This is a computer-generated document and does not require a signature.</p>
+        </div>
       </div>
       <div className="flex justify-end mt-4">
         <Btn color="blue" onClick={download} data-testid="invoice-modal-download-btn">Download</Btn>

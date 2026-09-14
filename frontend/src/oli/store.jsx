@@ -37,6 +37,7 @@ function buildSeed() {
   return {
     v: 1,
     session: { loggedIn: false, via: null },
+    auth: { password: 'Demo123@' },
     profile: { ...PROFILE_SEED },
     services: SERVICES_SEED.map(s => ({ ...s, docsSeed: undefined, docs: materializeDocs(s) })),
     invoices: INVOICES_SEED.map(i => ({ ...i })),
@@ -57,7 +58,10 @@ export function StoreProvider({ children }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.v === 1) return parsed;
+        if (parsed && parsed.v === 1) {
+          if (!parsed.auth) parsed.auth = { password: 'Demo123@' };
+          return parsed;
+        }
       }
     } catch (e) { /* reseed */ }
     return buildSeed();

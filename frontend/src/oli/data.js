@@ -408,3 +408,17 @@ export const TOUR_SLIDES = [
 ];
 
 export const CUSTOMER = { name: 'Vamsee Krishna', company: 'ABC Foods Private Limited', mainOli: 'OLI12345678914797' };
+
+export const SERVICE_ETA = {
+  gst: '3-7 Days',
+  tm: '7 Days',
+  iso: '10-15 Days',
+  company: '10-15 Days',
+  iec: '3-5 Days',
+  fssai: '7-10 Days',
+  bookkeeping: 'Monthly Cycle',
+  afc: '15-20 Days',
+  tmobj: '7-10 Days',
+  gstreturn: '2-3 Days',
+  custom: '7-15 Days',
+};

@@ -16,6 +16,7 @@ import Explore from './pages/Explore';
 import Recommended from './pages/Recommended';
 import Profile from './pages/Profile';
 import HowToUse from './pages/HowToUse';
+import TicketTracking from './pages/TicketTracking';
 
 function RequireAuth({ children }) {
   const { state } = useStore();
@@ -49,6 +50,7 @@ function App() {
             <Route path="/recommended" element={<Recommended />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/how-to-use" element={<HowToUse />} />
+            <Route path="/ticket/:ticketId" element={<TicketTracking />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

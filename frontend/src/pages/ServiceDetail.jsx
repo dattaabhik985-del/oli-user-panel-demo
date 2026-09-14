@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Phone, UploadCloud, Info, Eye, Download, Trash2, PartyPopper, BadgeCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStore, fmtNow, downloadDataUrl } from '../oli/store';
+import { SERVICE_ETA } from '../oli/data';
 import { useLayout } from '../oli/Layout';
 import { Card, Btn, LiveBadge, StageBadge, Progress, Stepper, Modal } from '../oli/ui';
 import { InstrModal, PreviewModal, InvoiceViewModal, useUploadFlow, OtpModal } from '../oli/modals';
@@ -89,6 +90,7 @@ export default function ServiceDetail() {
             <StageBadge svc={svc} />
           </div>
           <p className="text-[11px] text-gray-400 mt-1">{svc.oliId} · Started on: {svc.startedOn}</p>
+          <p className="text-[11px] text-gray-400 mt-0.5" data-testid="expected-completion">Expected Completion: <b className="text-gray-600 font-medium">{SERVICE_ETA[svc.key] || '7-15 Days'}</b></p>
           {svc.live && <p className="text-[11px] text-gray-400 italic mt-1">An Online Legal India agent is currently working on this service.</p>}
           {svc.meta && svc.meta.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2.5">
@@ -149,6 +151,7 @@ export default function ServiceDetail() {
 
       <Card className="p-5 mt-4" data-testid="required-docs-card">
         <p className="text-sm font-semibold text-gray-800">Required Documents</p>
+        <p className="text-[10px] text-gray-400 mt-0.5" data-testid="max-filesize-note">Maximum file size: 5 MB</p>
         <div className="mt-3 divide-y divide-gray-50">
           {svc.requiredDocs.map(r => (
             <div key={r.name} className="flex items-center gap-3 py-3" data-testid={`req-doc-${r.name.replace(/[^a-z0-9]/gi, '-')}`}>
@@ -169,7 +172,7 @@ export default function ServiceDetail() {
       </Card>
 
       <Card className="p-5 mt-4" data-testid="submitted-docs-card">
-        <p className="text-sm font-semibold text-gray-800">Documents Submitted</p>
+        <p className="text-sm font-semibold text-gray-800">Uploaded Documents</p>
         <div className="mt-3 divide-y divide-gray-50">
           {svc.docs.length === 0 && <p className="text-xs text-gray-400 py-3">No documents uploaded yet.</p>}
           {svc.docs.map(d => (

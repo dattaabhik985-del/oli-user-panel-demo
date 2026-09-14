@@ -34,6 +34,17 @@ Build a fully functional OLI (Online Legal India) Customer User Panel demo that 
 - Persistence across refresh (localStorage); responsive desktop/tablet/mobile.
 - Testing: iteration_1 — 28+ scenarios, 100% pass. Fixed: option/span hydration warning in selects.
 
+## Revision Pass (2026-09-14)
+- Welcome Back popup: service-wise bordered groups (service + OLI ID header, REQUIRED DOCUMENTS label) + visible 5 MB note.
+- OLI invoice upgraded to proper tax-invoice format (header, BILL TO, navy item table, PAID, footer) in both View modal and jsPDF download.
+- Service page: "Documents Submitted" renamed "Uploaded Documents"; added "Expected Completion" per service (Trademark 7 Days, GST 3-7 Days, ISO 10-15 Days, etc. via SERVICE_ETA); 5 MB note in Required Documents + Instructions popup.
+- Upload limit enforced at 5 MB with clear error toast and reselect.
+- Raise Callback: after selection only a summary box (Selected Service/OLI ID/Assigned Expert/DID) remains, with Change button to re-search.
+- Feedback: post-submit response screen — 4-5 stars "Your feedback is valuable for us 🙏"; 1-3 stars 😔 + apology; completed-service feedback then offers View Recommended Services → /recommended.
+- Forgot Password on login page (same design): registered email → OTP 123789 (incorrect blocked) → new+confirm password → saved to state.auth.password, usable for later logins.
+- Complaint success adds Track Ticket ID → /ticket/:id tracking page (Ticket ID, complaint, created, status, 5-stage escalation stepper, Work Completed, Pending Work, Latest Update, Escalation Team Remark); data persisted per ticket.
+- Testing: iteration_2 — all 11 revisions verified, 100% pass after agent fixed missing useNavigate in ComplaintModal. >5MB rejection path reviewed by inspection (dynamic file input not automatable).
+
 ## Backlog / Next Tasks
 - P1: None outstanding from testing.
 - P2 (only if user requests): richer PDF invoice templates, more recommended-services demo clients in the preview dropdown, drag-and-drop upload zone (currently file picker), OTP per-box inputs.
