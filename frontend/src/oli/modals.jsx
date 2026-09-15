@@ -301,6 +301,13 @@ export function FeedbackModal({ open, preselect, onClose }) {
     setStep('response');
   };
   const positive = submitted ? submitted.stars >= 4 : true;
+  useEffect(() => {
+    if (step === 'response' && submitted && submitted.forCompleted) {
+      const t = setTimeout(() => { onClose(); navigate('/recommended'); }, 2500);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, submitted]);
   return (
     <>
       <Modal open={open && step === 'form'} onClose={onClose} title="Share Your Feedback" sub="Rate your experience with Online Legal India." testid="feedback-modal">

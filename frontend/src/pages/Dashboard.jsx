@@ -38,6 +38,18 @@ export default function Dashboard() {
       <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
       <p className="text-xs text-gray-400 mt-0.5">Welcome back, {state.profile.name}! Here is an overview of your account.</p>
 
+      <div className="mt-3 rounded-lg border border-[#F5C99B] bg-[#FDF1E3] px-4 py-2.5 shadow-sm" data-testid="dashboard-reco-banner">
+        <p className="text-xs text-gray-600">
+          See what your Business Analysis identifies that may be missing. Visit{' '}
+          <button
+            data-testid="dashboard-reco-link"
+            onClick={() => navigate('/recommended')}
+            className="font-semibold text-[#EA6D27] underline decoration-[#EA6D27]/40 underline-offset-2 hover:decoration-[#EA6D27] transition-colors"
+          >Recommended Services</button>
+          {' '}to explore
+        </p>
+      </div>
+
       <p className="text-[10px] font-semibold tracking-widest text-gray-400 mt-5 mb-2">ONE-CLICK ACCESS</p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-tour="dash-cards">
         {cards.map(c => (

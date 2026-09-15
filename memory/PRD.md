@@ -45,6 +45,12 @@ Build a fully functional OLI (Online Legal India) Customer User Panel demo that 
 - Complaint success adds Track Ticket ID → /ticket/:id tracking page (Ticket ID, complaint, created, status, 5-stage escalation stepper, Work Completed, Pending Work, Latest Update, Escalation Team Remark); data persisted per ticket.
 - Testing: iteration_2 — all 11 revisions verified, 100% pass after agent fixed missing useNavigate in ComplaintModal. >5MB rejection path reviewed by inspection (dynamic file input not automatable).
 
+## Final Revision (2026-09-15)
+- Completed/Work Done service pages now auto-open the Feedback popup (ServiceDetail useEffect, ~600ms) when the service has no feedback yet; never for non-completed services; no re-open after feedback submitted.
+- After feedback submit: rating-based response (1-3 stars → 😔 + apology; 4-5 stars → "Your feedback is valuable for us 🙏"), then Recommended Services ALWAYS opens (auto-redirect ~2.5s + View Recommended Services button) for every rating — redirect is not conditioned on stars.
+- Dashboard: new highlighted banner "See what your Business Analysis identifies that may be missing. Visit Recommended Services to explore" with clickable orange Recommended Services link → /recommended.
+- Testing: iteration_3 — flows A-F all pass, 100%, no console errors, desktop + mobile verified.
+
 ## Backlog / Next Tasks
 - P1: None outstanding from testing.
 - P2 (only if user requests): richer PDF invoice templates, more recommended-services demo clients in the preview dropdown, drag-and-drop upload zone (currently file picker), OTP per-box inputs.

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Phone, UploadCloud, Info, Eye, Download, Trash2, PartyPopper, BadgeCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,6 +21,14 @@ export default function ServiceDetail() {
   const [viewItem, setViewItem] = useState(null);
   const [completedOpen, setCompletedOpen] = useState(false);
   const [delDoc, setDelDoc] = useState(null);
+
+  useEffect(() => {
+    if (svc && svc.completed && !svc.feedback) {
+      const t = setTimeout(() => layout.openFeedback(svc.oliId), 600);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svc && svc.oliId, svc && svc.completed, svc && !!svc.feedback]);
 
   if (!svc) {
     return (
