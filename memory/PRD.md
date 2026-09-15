@@ -51,6 +51,14 @@ Build a fully functional OLI (Online Legal India) Customer User Panel demo that 
 - Dashboard: new highlighted banner "See what your Business Analysis identifies that may be missing. Visit Recommended Services to explore" with clickable orange Recommended Services link → /recommended.
 - Testing: iteration_3 — flows A-F all pass, 100%, no console errors, desktop + mobile verified.
 
+## My Documents Revision (2026-09-15, iteration_4)
+- Top card main action changed from "Upload Document" to "Search"; the service dropdown is now the search/selection mechanism (by name or OLI ID).
+- Default state (no search): ALL services shown grouped service-wise with their uploaded documents ("All services · N files uploaded").
+- After Search: only the selected service group remains ("Search Result: {name} · {oliId}"), with all its documents and an "Upload Document" button inside that card (upload bound to the searched OLI; Are-you-sure confirm; persists after refresh).
+- "Clear Search" (visible only when a search is active) restores the all-services view.
+- Per-doc Preview/Download/Delete unchanged; mobile doc rows now stack actions under the file name (fixed truncated names at 375px).
+- Testing: iteration_4 — all flows A-D, filter switching, multi-OLI isolation, cross-service isolation, persistence, mobile/tablet — 100% pass.
+
 ## Backlog / Next Tasks
 - P1: None outstanding from testing.
 - P2 (only if user requests): richer PDF invoice templates, more recommended-services demo clients in the preview dropdown, drag-and-drop upload zone (currently file picker), OTP per-box inputs.

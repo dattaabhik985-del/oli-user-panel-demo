@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 4 frontend-only testing of the revised My Documents page. All flows (A default all-25-services grouped view, B search filters to single group with Upload Document button, C upload with Are-you-sure confirm + refresh persistence + preview, D clear-search restores all 25) passed. Filter switching between GST/TM 14785/ISO/TM 14790 shows exactly 1 group each with correct doc counts (GST=4, TM14785=2, TM14790=1, ISO=1). Multi-OLI isolation verified: uploads made to one OLI never appear under another OLI (same or different service category). Cross-service isolation verified: GST upload not visible under Trademark, TM 14790 upload not visible under GST or TM 14785. Top card button text is exactly 'Search'; upload-document-btn appears only inside searched card. Empty search shows 'Please select a service to search.' toast. Mobile 375px stacks card correctly, filter still returns 1 group; tablet 768px shows all 25 groups. All-services label reads 'All services · N files uploaded'; search-result-label reads 'Search Result: {name} · {oliId}'. Zero-doc services show 'No documents uploaded yet for this service.' (18 of 25 expected).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "My Documents mobile 375px", "issues": ["Document row action buttons (Preview/Download/Delete) push the file-name column so narrow it truncates to a single character ('A' instead of 'Aadhaar.pdf'). Pre-existing layout (not new in this iteration) but worth flagging – consider stacking actions below the name on <sm screens."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MyDocuments.jsx is clean (~102 lines). Search state is local and correctly derives visible = [searchedSvc] || state.services. Upload button conditional on searchedSvc is correct. requestUpload(oliId, null, null) properly binds file to the searched OLI. No _id leaks, no hardcoded URLs, all interactive elements have data-testid.",
+    "Minor: on mobile the doc-row layout truncates file names to ~1 character due to shrink-0 action buttons + flex-1 name column; pre-existing, not a regression."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A", "frontend": "100%" },
+  "test_credentials": "demo@email.com / Demo123@ / OTP 123456",
+  "seed_data_creation": "None (used existing seeded docs). Test uploads: /tmp/testfiles/gst_test.pdf (to GST) and /tmp/testfiles/tm_test.pdf (to TM OLI12345678914790). Both were localStorage-only in the test browser context.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "MyDocuments now has: upload-service-select, search-service-btn ('Search'), clear-search-btn (only when searched), all-services-label vs search-result-label, doc-group-{oliId} cards, and upload-document-btn only inside searched card. File uploads go through useUploadFlow -> upload-confirm-modal -> confirm-ok-btn. pickFile uses a dynamically-created <input type=file>, so intercept with page.expect_file_chooser(). Each Playwright run starts a fresh browser context = fresh localStorage, so uploaded docs from a previous script run will NOT persist across script runs (only across in-context reloads)."
+}
