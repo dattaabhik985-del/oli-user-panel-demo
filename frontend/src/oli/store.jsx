@@ -60,6 +60,8 @@ export function StoreProvider({ children }) {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.v === 1) {
           if (!parsed.auth) parsed.auth = { password: 'Demo123@' };
+          const session = sessionStorage.getItem('oli_panel_session');
+          parsed.session = session ? JSON.parse(session) : { loggedIn: false, via: null };
           return parsed;
         }
       }
@@ -70,7 +72,11 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (t.current) clearTimeout(t.current);
     t.current = setTimeout(() => {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* quota */ }
+      try {
+        const savedState = { ...state, session: { loggedIn: false, via: null } };
+        localStorage.setItem(KEY, JSON.stringify(savedState));
+        sessionStorage.setItem('oli_panel_session', JSON.stringify(state.session));
+      } catch (e) { /* quota */ }
     }, 250);
     return () => clearTimeout(t.current);
   }, [state]);
