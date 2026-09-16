@@ -59,6 +59,14 @@ Build a fully functional OLI (Online Legal India) Customer User Panel demo that 
 - Per-doc Preview/Download/Delete unchanged; mobile doc rows now stack actions under the file name (fixed truncated names at 375px).
 - Testing: iteration_4 — all flows A-D, filter switching, multi-OLI isolation, cross-service isolation, persistence, mobile/tablet — 100% pass.
 
+## Profile Alt Number Update (2026-09-16, iteration_5)
+- New "Alternative Number Update" toggle on Profile page (same switch style as Contact Person Details, which is unchanged). Off = alt fields disabled/read-only + priority checkbox hidden; On = only Alternative Number + Alternative Person Name editable + priority checkbox appears.
+- Validation: 10-digit number + required person name, inline errors, blocks save.
+- Save → Are-you-sure confirm → OTP modal ("OTP has been sent to your registered email and mobile number.", demo OTP 123456, single OTP both channels, Resend, "Verifying…" loading state, 60s expiry with resend reset, incorrect OTP never saves).
+- Post-OTP save toasts: "Alternative contact details updated successfully." (+ "Alternative number is set as the priority number." when priority checked); green "Priority Number" badge persists next to the alt number when set; unchecked → registered number stays priority.
+- OtpModal (shared with login) gained loading/expiry/resend — login OTP flow regression-verified.
+- Testing: iteration_5 — 11+ scenario tests incl. CP independence, rapid-click stability, mobile — 100% pass.
+
 ## Backlog / Next Tasks
 - P1: None outstanding from testing.
 - P2 (only if user requests): richer PDF invoice templates, more recommended-services demo clients in the preview dropdown, drag-and-drop upload zone (currently file picker), OTP per-box inputs.
