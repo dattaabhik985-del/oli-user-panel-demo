@@ -57,6 +57,9 @@ export default function Profile() {
             <div>
               <p className="text-xs font-semibold text-gray-700">Alternative Number Update</p>
               <p className="text-[10px] text-gray-400">(enable to update your alternative contact details)</p>
+              {!altUpdate && p.priorityAlt && (
+                <span className="inline-block mt-1 rounded-full bg-green-100 text-green-600 px-2 py-0.5 text-[9px] font-medium" data-testid="priority-number-badge">Priority Number: {p.altNumber}</span>
+              )}
             </div>
             <button
               data-testid="alt-number-update-toggle"
@@ -67,43 +70,38 @@ export default function Profile() {
             </button>
           </div>
 
-          <Field label="Alternative Number">
-            <div className="relative">
-              <input
-                data-testid="profile-alt-number-input"
-                className={altUpdate ? inputCls : `${inputCls} bg-gray-50`}
-                value={form.altNumber}
-                disabled={!altUpdate}
-                onChange={e => { upd('altNumber', e.target.value); setErrs(x => ({ ...x, altNumber: undefined })); }}
-              />
-              {!altUpdate && p.priorityAlt && (
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-green-100 text-green-600 px-2 py-0.5 text-[9px] font-medium" data-testid="priority-number-badge">Priority Number</span>
-              )}
-            </div>
-            {altUpdate && errs.altNumber && <p data-testid="alt-number-error" className="text-[10px] text-red-500 mt-1">{errs.altNumber}</p>}
-          </Field>
-          <Field label="Alternative Person Name">
-            <input
-              data-testid="profile-alt-person-input"
-              className={altUpdate ? inputCls : `${inputCls} bg-gray-50`}
-              value={form.altPerson}
-              disabled={!altUpdate}
-              onChange={e => { upd('altPerson', e.target.value); setErrs(x => ({ ...x, altPerson: undefined })); }}
-            />
-            {altUpdate && errs.altPerson && <p data-testid="alt-person-error" className="text-[10px] text-red-500 mt-1">{errs.altPerson}</p>}
-          </Field>
-
           {altUpdate && (
-            <label className="flex items-start gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                data-testid="profile-priority-checkbox"
-                className="mt-0.5 accent-[#2E6BEA]"
-                checked={form.priorityAlt}
-                onChange={e => upd('priorityAlt', e.target.checked)}
-              />
-              <span className="text-[11px] text-gray-500">Set alternative number as priority number <span className="text-gray-400">(our team will call this number first)</span></span>
-            </label>
+            <>
+              <Field label="Alternative Number">
+                <input
+                  data-testid="profile-alt-number-input"
+                  className={inputCls}
+                  value={form.altNumber}
+                  onChange={e => { upd('altNumber', e.target.value); setErrs(x => ({ ...x, altNumber: undefined })); }}
+                />
+                {errs.altNumber && <p data-testid="alt-number-error" className="text-[10px] text-red-500 mt-1">{errs.altNumber}</p>}
+              </Field>
+              <Field label="Alternative Person Name">
+                <input
+                  data-testid="profile-alt-person-input"
+                  className={inputCls}
+                  value={form.altPerson}
+                  onChange={e => { upd('altPerson', e.target.value); setErrs(x => ({ ...x, altPerson: undefined })); }}
+                />
+                {errs.altPerson && <p data-testid="alt-person-error" className="text-[10px] text-red-500 mt-1">{errs.altPerson}</p>}
+              </Field>
+
+              <label className="flex items-start gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  data-testid="profile-priority-checkbox"
+                  className="mt-0.5 accent-[#2E6BEA]"
+                  checked={form.priorityAlt}
+                  onChange={e => upd('priorityAlt', e.target.checked)}
+                />
+                <span className="text-[11px] text-gray-500">Set alternative number as priority number <span className="text-gray-400">(our team will call this number first)</span></span>
+              </label>
+            </>
           )}
 
           <div className="rounded-lg border border-gray-100 p-3.5">

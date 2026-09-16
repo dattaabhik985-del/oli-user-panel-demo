@@ -60,7 +60,7 @@ Build a fully functional OLI (Online Legal India) Customer User Panel demo that 
 - Testing: iteration_4 — all flows A-D, filter switching, multi-OLI isolation, cross-service isolation, persistence, mobile/tablet — 100% pass.
 
 ## Profile Alt Number Update (2026-09-16, iteration_5)
-- New "Alternative Number Update" toggle on Profile page (same switch style as Contact Person Details, which is unchanged). Off = alt fields disabled/read-only + priority checkbox hidden; On = only Alternative Number + Alternative Person Name editable + priority checkbox appears.
+- New "Alternative Number Update" toggle on Profile page (same switch style as Contact Person Details, which is unchanged). Off = alt fields and priority checkbox are completely hidden (with a "Priority Number: <number>" badge under the toggle when priority is set); On = Alternative Number + Alternative Person Name appear editable + priority checkbox appears.
 - Validation: 10-digit number + required person name, inline errors, blocks save.
 - Save → Are-you-sure confirm → OTP modal ("OTP has been sent to your registered email and mobile number.", demo OTP 123456, single OTP both channels, Resend, "Verifying…" loading state, 60s expiry with resend reset, incorrect OTP never saves).
 - Post-OTP save toasts: "Alternative contact details updated successfully." (+ "Alternative number is set as the priority number." when priority checked); green "Priority Number" badge persists next to the alt number when set; unchecked → registered number stays priority.
