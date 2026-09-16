@@ -58,10 +58,25 @@ export function useUploadFlow() {
 export function OtpModal({ open, onClose, onVerified, title = 'OTP Verification', sub = 'OTP sent to your registered mobile number and email address.', verifyLabel = 'Verify & Save' }) {
   const [otp, setOtp] = useState('');
   const [err, setErr] = useState('');
-  useEffect(() => { if (open) { setOtp(''); setErr(''); } }, [open]);
+  const [verifying, setVerifying] = useState(false);
+  const [sentAt, setSentAt] = useState(0);
+  useEffect(() => { if (open) { setOtp(''); setErr(''); setVerifying(false); setSentAt(Date.now()); } }, [open]);
   const verify = () => {
-    if (otp === '123456') { onVerified(); }
-    else setErr('Incorrect OTP. Demo OTP is 123456.');
+    if (verifying) return;
+    if (Date.now() - sentAt > 60000) { setErr('OTP has expired. Please tap Resend OTP to get a new one.'); return; }
+    setVerifying(true);
+    setErr('');
+    setTimeout(() => {
+      setVerifying(false);
+      if (otp === '123456') { onVerified(); }
+      else setErr('Incorrect OTP. Please try again.');
+    }, 700);
+  };
+  const resend = () => {
+    setSentAt(Date.now());
+    setOtp('');
+    setErr('');
+    toast.info('A new OTP has been sent to your registered email and mobile number. (demo OTP: 123456)');
   };
   return (
     <Modal open={open} onClose={onClose} title={title} sub={sub} testid="otp-modal">
@@ -77,10 +92,10 @@ export function OtpModal({ open, onClose, onVerified, title = 'OTP Verification'
       </Field>
       {err && <p data-testid="otp-error" className="text-xs text-red-500 mt-1.5">{err}</p>}
       <div className="flex items-center justify-between mt-5">
-        <button data-testid="resend-otp-btn" className="text-xs text-[#2E6BEA] hover:underline" onClick={() => toast.info('OTP resent (demo OTP: 123456)')}>Resend OTP</button>
+        <button data-testid="resend-otp-btn" className="text-xs text-[#2E6BEA] hover:underline" onClick={resend}>Resend OTP</button>
         <div className="flex gap-2">
           <Btn color="gray" onClick={onClose} data-testid="otp-cancel-btn">Cancel</Btn>
-          <Btn color="blue" onClick={verify} data-testid="otp-verify-btn">{verifyLabel}</Btn>
+          <Btn color="blue" onClick={verify} disabled={verifying} data-testid="otp-verify-btn">{verifying ? 'Verifying…' : verifyLabel}</Btn>
         </div>
       </div>
     </Modal>

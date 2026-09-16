@@ -9,15 +9,38 @@ export default function Profile() {
   const p = state.profile;
   const [form, setForm] = useState({ ...p });
   const [confirm, setConfirm] = useState(false);
+  const [altUpdate, setAltUpdate] = useState(false);
+  const [errs, setErrs] = useState({});
   const [otp, setOtp] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
 
   const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const onSave = () => {
+    if (altUpdate) {
+      const e = {};
+      if (form.altNumber.replace(/\D/g, '').length !== 10) e.altNumber = 'Enter a valid 10-digit mobile number.';
+      if (!form.altPerson.trim()) e.altPerson = 'Alternative person name is required.';
+      setErrs(e);
+      if (Object.keys(e).length) return;
+    }
+    setConfirm(true);
+  };
+
   const doSave = () => {
-    set(st => { st.profile = { ...form }; return st; });
+    set(st => {
+      st.profile = altUpdate
+        ? { ...form }
+        : { ...form, altNumber: st.profile.altNumber, altPerson: st.profile.altPerson, priorityAlt: st.profile.priorityAlt };
+      return st;
+    });
     setOtp(false);
-    toast.success('Profile updated successfully.');
+    if (altUpdate) {
+      toast.success('Alternative contact details updated successfully.');
+      if (form.priorityAlt) toast.success('Alternative number is set as the priority number.');
+    } else {
+      toast.success('Profile updated successfully.');
+    }
   };
 
   return (
@@ -30,19 +53,58 @@ export default function Profile() {
           <Field label="Full Name"><input data-testid="profile-name-input" className={inputCls} value={form.name} onChange={e => upd('name', e.target.value)} /></Field>
           <Field label="Email"><input data-testid="profile-email-input" className={`${inputCls} bg-gray-50`} value={form.email} disabled /></Field>
           <Field label="Registered Mobile Number"><input data-testid="profile-mobile-input" className={`${inputCls} bg-gray-50`} value={form.mobile} disabled /></Field>
-          <Field label="Alternative Number"><input data-testid="profile-alt-number-input" className={inputCls} value={form.altNumber} onChange={e => upd('altNumber', e.target.value)} /></Field>
-          <Field label="Alternative Person Name"><input data-testid="profile-alt-person-input" className={inputCls} value={form.altPerson} onChange={e => upd('altPerson', e.target.value)} /></Field>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3.5 py-2.5">
+            <div>
+              <p className="text-xs font-semibold text-gray-700">Alternative Number Update</p>
+              <p className="text-[10px] text-gray-400">(enable to update your alternative contact details)</p>
+            </div>
+            <button
+              data-testid="alt-number-update-toggle"
+              onClick={() => { setAltUpdate(v => !v); setErrs({}); }}
+              className={`w-10 h-6 rounded-full transition-colors relative shrink-0 ${altUpdate ? 'bg-[#16A34A]' : 'bg-gray-200'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${altUpdate ? 'left-[18px]' : 'left-0.5'}`} />
+            </button>
+          </div>
 
-          <label className="flex items-start gap-2 cursor-pointer select-none">
+          <Field label="Alternative Number">
+            <div className="relative">
+              <input
+                data-testid="profile-alt-number-input"
+                className={altUpdate ? inputCls : `${inputCls} bg-gray-50`}
+                value={form.altNumber}
+                disabled={!altUpdate}
+                onChange={e => { upd('altNumber', e.target.value); setErrs(x => ({ ...x, altNumber: undefined })); }}
+              />
+              {!altUpdate && p.priorityAlt && (
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-green-100 text-green-600 px-2 py-0.5 text-[9px] font-medium" data-testid="priority-number-badge">Priority Number</span>
+              )}
+            </div>
+            {altUpdate && errs.altNumber && <p data-testid="alt-number-error" className="text-[10px] text-red-500 mt-1">{errs.altNumber}</p>}
+          </Field>
+          <Field label="Alternative Person Name">
             <input
-              type="checkbox"
-              data-testid="profile-priority-checkbox"
-              className="mt-0.5 accent-[#2E6BEA]"
-              checked={form.priorityAlt}
-              onChange={e => upd('priorityAlt', e.target.checked)}
+              data-testid="profile-alt-person-input"
+              className={altUpdate ? inputCls : `${inputCls} bg-gray-50`}
+              value={form.altPerson}
+              disabled={!altUpdate}
+              onChange={e => { upd('altPerson', e.target.value); setErrs(x => ({ ...x, altPerson: undefined })); }}
             />
-            <span className="text-[11px] text-gray-500">Set alternative number as priority number <span className="text-gray-400">(our team will call this number first)</span></span>
-          </label>
+            {altUpdate && errs.altPerson && <p data-testid="alt-person-error" className="text-[10px] text-red-500 mt-1">{errs.altPerson}</p>}
+          </Field>
+
+          {altUpdate && (
+            <label className="flex items-start gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                data-testid="profile-priority-checkbox"
+                className="mt-0.5 accent-[#2E6BEA]"
+                checked={form.priorityAlt}
+                onChange={e => upd('priorityAlt', e.target.checked)}
+              />
+              <span className="text-[11px] text-gray-500">Set alternative number as priority number <span className="text-gray-400">(our team will call this number first)</span></span>
+            </label>
+          )}
 
           <div className="rounded-lg border border-gray-100 p-3.5">
             <div className="flex items-center justify-between gap-3">
@@ -69,7 +131,7 @@ export default function Profile() {
           </div>
 
           <div className="flex gap-2 pt-1">
-            <Btn color="blue" size="md" data-testid="profile-save-btn" onClick={() => setConfirm(true)}>Save Changes</Btn>
+            <Btn color="blue" size="md" data-testid="profile-save-btn" onClick={onSave}>Save Changes</Btn>
             <Btn color="gray" size="md" data-testid="reset-demo-btn" onClick={() => setResetConfirm(true)}>Reset Demo Data</Btn>
           </div>
         </div>
@@ -84,7 +146,7 @@ export default function Profile() {
         color="blue"
         testid="profile-confirm-modal"
       />
-      <OtpModal open={otp} onClose={() => setOtp(false)} onVerified={doSave} />
+      <OtpModal open={otp} onClose={() => setOtp(false)} onVerified={doSave} sub="OTP has been sent to your registered email and mobile number." />
       <ConfirmModal
         open={resetConfirm}
         onClose={() => setResetConfirm(false)}
