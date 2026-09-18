@@ -18,6 +18,7 @@ export function commitUpload(set, oliId, file, dataUrl, reqDocName) {
       mime: file.type || 'application/octet-stream',
       date: fmtNow(),
       dataUrl,
+      reqDoc: reqDocName || null,
     });
     if (reqDocName) {
       const r = s.requiredDocs.find(r => r.name === reqDocName);
@@ -529,6 +530,73 @@ export function PreviewModal({ open, doc, onClose }) {
         <Btn color="blue" onClick={() => downloadDataUrl(doc.dataUrl, doc.name)} data-testid="preview-download-btn">Download</Btn>
       </div>
     </Modal>
+  );
+}
+
+export function DeleteDocModal({ target, onClose }) {
+  const { state, set } = useStore();
+  const [step, setStep] = useState('confirm');
+  const [reason, setReason] = useState('');
+  const [err, setErr] = useState('');
+  useEffect(() => { if (target) { setStep('confirm'); setReason(''); setErr(''); } }, [target]);
+  if (!target) return null;
+  const svc = state.services.find(s => s.oliId === target.oliId);
+  const doDelete = () => {
+    if (!reason.trim()) { setErr('Please tell us why you want to delete this document.'); return; }
+    set(st => {
+      const s = st.services.find(x => x.oliId === target.oliId);
+      if (s) {
+        const d = s.docs.find(x => x.id === target.doc.id);
+        st.deletionLog.unshift({
+          id: 'del-' + Math.random().toString(36).slice(2, 9),
+          customer: st.profile.name,
+          service: s.name,
+          oliId: s.oliId,
+          docName: target.doc.name,
+          typeLabel: target.doc.typeLabel,
+          uploadedAt: d ? d.date : null,
+          deletedAt: fmtNow(),
+          reason: reason.trim(),
+          action: 'Document deleted by customer',
+        });
+        s.docs = s.docs.filter(x => x.id !== target.doc.id);
+        if (d && d.reqDoc) {
+          const r = s.requiredDocs.find(r => r.name === d.reqDoc);
+          if (r) r.uploaded = false;
+        }
+      }
+      return st;
+    });
+    toast.success('Document deleted successfully.');
+    onClose();
+  };
+  return (
+    <>
+      <Modal open={step === 'confirm'} onClose={onClose} testid="delete-confirm-modal">
+        <p className="text-sm font-medium text-gray-800">Are you sure you want to delete "{target.doc.name}"?</p>
+        <div className="flex justify-end gap-2 mt-6">
+          <Btn color="gray" size="md" onClick={onClose} data-testid="delete-cancel-btn">Cancel</Btn>
+          <Btn color="red" size="md" onClick={() => setStep('reason')} data-testid="delete-confirm-btn">Confirm</Btn>
+        </div>
+      </Modal>
+      <Modal open={step === 'reason'} onClose={onClose} title="Why do you want to delete this document?" sub="Please tell us the reason for deleting this document." testid="delete-reason-modal">
+        <Field label="Reason for deletion">
+          <textarea
+            data-testid="delete-reason-input"
+            rows={3}
+            className={inputCls}
+            placeholder="e.g. Uploaded the wrong document / I want to upload a revised document"
+            value={reason}
+            onChange={e => { setReason(e.target.value); setErr(''); }}
+          />
+        </Field>
+        {err && <p data-testid="delete-reason-error" className="text-xs text-red-500 mt-1.5">{err}</p>}
+        <div className="flex justify-end gap-2 mt-5">
+          <Btn color="gray" onClick={() => setStep('confirm')} data-testid="delete-reason-cancel">Back</Btn>
+          <Btn color="red" onClick={doDelete} data-testid="delete-reason-submit-btn">Submit</Btn>
+        </div>
+      </Modal>
+    </>
   );
 }
 

@@ -6,7 +6,7 @@ import { useStore, fmtNow, downloadDataUrl } from '../oli/store';
 import { SERVICE_ETA } from '../oli/data';
 import { useLayout } from '../oli/Layout';
 import { Card, Btn, LiveBadge, StageBadge, Progress, Stepper, Modal } from '../oli/ui';
-import { InstrModal, PreviewModal, InvoiceViewModal, useUploadFlow, OtpModal } from '../oli/modals';
+import { InstrModal, PreviewModal, InvoiceViewModal, DeleteDocModal, useUploadFlow, OtpModal } from '../oli/modals';
 import { invoiceDoc, receiptDoc, certificateDoc } from '../oli/pdf';
 
 export default function ServiceDetail() {
@@ -161,7 +161,7 @@ export default function ServiceDetail() {
         <p className="text-sm font-semibold text-gray-800">Required Documents</p>
         <p className="text-[10px] text-gray-400 mt-0.5" data-testid="max-filesize-note">Maximum file size: 5 MB</p>
         <div className="mt-3 divide-y divide-gray-50">
-          {svc.requiredDocs.map(r => (
+          {svc.requiredDocs.filter(r => !r.uploaded).map(r => (
             <div key={r.name} className="flex items-center gap-3 py-3" data-testid={`req-doc-${r.name.replace(/[^a-z0-9]/gi, '-')}`}>
               <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0"><UploadCloud size={16} className="text-gray-400" /></div>
               <div className="flex-1 min-w-0">
@@ -169,13 +169,12 @@ export default function ServiceDetail() {
                 <p className="text-[10px] text-gray-400">Accepted: {r.accepted}</p>
               </div>
               <Btn color="blue" outline data-testid={`instr-btn-${r.name.replace(/[^a-z0-9]/gi, '-')}`} onClick={() => setInstrDoc(r)}><Info size={12} /> Instructions</Btn>
-              {r.uploaded ? (
-                <span className="rounded-full bg-green-100 text-green-600 px-2.5 py-1 text-[10px] font-medium" data-testid="req-doc-uploaded-badge">Uploaded</span>
-              ) : (
-                <Btn color="blue" data-testid={`upload-btn-${r.name.replace(/[^a-z0-9]/gi, '-')}`} onClick={() => requestUpload(svc.oliId, r.name, r.accepted)}>Upload</Btn>
-              )}
+              <Btn color="blue" data-testid={`upload-btn-${r.name.replace(/[^a-z0-9]/gi, '-')}`} onClick={() => requestUpload(svc.oliId, r.name, r.accepted)}>Upload</Btn>
             </div>
           ))}
+          {svc.requiredDocs.every(r => r.uploaded) && (
+            <p className="text-xs text-gray-400 py-3" data-testid="req-docs-all-done">All required documents have been uploaded.</p>
+          )}
         </div>
       </Card>
 
@@ -239,17 +238,7 @@ export default function ServiceDetail() {
       <InvoiceViewModal open={!!viewItem} item={viewItem ? viewItem.item : null} kind={viewItem ? viewItem.kind : 'invoice'} onClose={() => setViewItem(null)} />
       {uploadConfirmNode}
 
-      <Modal open={!!delDoc} onClose={() => setDelDoc(null)} testid="delete-doc-modal">
-        <p className="text-sm font-medium text-gray-800">Are you sure you want to delete "{delDoc ? delDoc.name : ''}"?</p>
-        <div className="flex justify-end gap-2 mt-6">
-          <Btn color="gray" size="md" onClick={() => setDelDoc(null)} data-testid="delete-cancel-btn">Cancel</Btn>
-          <Btn color="red" size="md" data-testid="delete-confirm-btn" onClick={() => {
-            updateSvc(s => { s.docs = s.docs.filter(x => x.id !== delDoc.id); });
-            toast.success('Document deleted.');
-            setDelDoc(null);
-          }}>Delete</Btn>
-        </div>
-      </Modal>
+      <DeleteDocModal target={delDoc ? { oliId: svc.oliId, doc: delDoc } : null} onClose={() => setDelDoc(null)} />
 
       <Modal open={completedOpen} onClose={closeCompleted} title="Service Completed 🎉" testid="service-completed-modal">
         <div className="flex flex-col items-center text-center py-2">

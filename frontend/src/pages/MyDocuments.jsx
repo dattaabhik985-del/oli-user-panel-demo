@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { FileText, Eye, Download, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStore, downloadDataUrl } from '../oli/store';
-import { Card, Btn, Modal } from '../oli/ui';
-import { PreviewModal, useUploadFlow } from '../oli/modals';
+import { Card, Btn } from '../oli/ui';
+import { PreviewModal, DeleteDocModal, useUploadFlow } from '../oli/modals';
 
 export default function MyDocuments() {
   const { state, set } = useStore();
@@ -81,21 +81,7 @@ export default function MyDocuments() {
 
       <PreviewModal open={!!previewDoc} doc={previewDoc} onClose={() => setPreviewDoc(null)} />
       {uploadConfirmNode}
-      <Modal open={!!delDoc} onClose={() => setDelDoc(null)} testid="delete-doc-modal">
-        <p className="text-sm font-medium text-gray-800">Are you sure you want to delete "{delDoc ? delDoc.doc.name : ''}"?</p>
-        <div className="flex justify-end gap-2 mt-6">
-          <Btn color="gray" size="md" onClick={() => setDelDoc(null)} data-testid="delete-cancel-btn">Cancel</Btn>
-          <Btn color="red" size="md" data-testid="delete-confirm-btn" onClick={() => {
-            set(st => {
-              const s = st.services.find(x => x.oliId === delDoc.svc);
-              if (s) s.docs = s.docs.filter(x => x.id !== delDoc.doc.id);
-              return st;
-            });
-            toast.success('Document deleted.');
-            setDelDoc(null);
-          }}>Delete</Btn>
-        </div>
-      </Modal>
+      <DeleteDocModal target={delDoc ? { oliId: delDoc.svc, doc: delDoc.doc } : null} onClose={() => setDelDoc(null)} />
     </div>
   );
 }

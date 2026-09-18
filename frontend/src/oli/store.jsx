@@ -46,6 +46,7 @@ function buildSeed() {
     complaints: [],
     suggestions: [],
     feedbackLog: [],
+    deletionLog: [],
   };
 }
 
@@ -60,6 +61,7 @@ export function StoreProvider({ children }) {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.v === 1) {
           if (!parsed.auth) parsed.auth = { password: 'Demo123@' };
+          if (!parsed.deletionLog) parsed.deletionLog = [];
           const session = sessionStorage.getItem('oli_panel_session');
           parsed.session = session ? JSON.parse(session) : { loggedIn: false, via: null };
           return parsed;
