@@ -67,6 +67,14 @@ Build a fully functional OLI (Online Legal India) Customer User Panel demo that 
 - OtpModal (shared with login) gained loading/expiry/resend — login OTP flow regression-verified.
 - Testing: iteration_5 — 11+ scenario tests incl. CP independence, rapid-click stability, mobile — 100% pass.
 
+## Document Upload & Delete Workflow (2026-09-18, iteration_6)
+- Delete is now two-step: Delete → "Are you sure?" (Cancel keeps doc / Confirm) → mandatory reason modal "Why do you want to delete this document?" (empty reason blocked) → Submit → doc removed + success toast.
+- Internal deletion remarks stored in state.deletionLog (customer, service, OLI ID, doc name, original upload date, deletion timestamp, reason, action) — never rendered anywhere in the customer portal; persists across refresh.
+- Uploads via a Required Document carry reqDoc linkage; deleting such a doc automatically makes that required document outstanding again.
+- Service-page Required Documents now lists ONLY outstanding docs (uploaded ones disappear immediately, appear under Uploaded Documents; "All required documents have been uploaded." when none outstanding).
+- Upload flow unchanged: pick → 5 MB validation → "Are you sure?" (Cancel = nothing) → Confirm uploads.
+- Testing: iteration_6 — 12 tests (upload cancel/confirm, required↔uploaded transitions both directions, two-step delete, empty-reason block, internal secrecy across all portal pages, cross-OLI isolation, refresh persistence, 5 MB, My Documents + Welcome popup regression, mobile) — 100% pass.
+
 ## Backlog / Next Tasks
 - P1: None outstanding from testing.
 - P2 (only if user requests): richer PDF invoice templates, more recommended-services demo clients in the preview dropdown, drag-and-drop upload zone (currently file picker), OTP per-box inputs.
